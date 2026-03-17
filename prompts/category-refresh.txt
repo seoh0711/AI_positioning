@@ -1,0 +1,36 @@
+당신은 세계적인 직무 분석가입니다.
+대상 직무: "{job}"
+새로 분석할 카테고리: "{category_name}"
+
+이 직무의 "{category_name}" 섹션만 다시 분석하여 다음 구조의 JSON 배열로만 응답하세요.
+반드시 5개의 새로운 항목을 생성해야 하며, 한국어(ko)와 영어(en) 버전을 모두 포함해야 합니다.
+
+**automation 카테고리 형식:**
+[
+  {
+    "title": { "ko": "작업명", "en": "Task Name" },
+    "reason": { "ko": "자동화 이유", "en": "Automation Reason" },
+    "automation_prompt": { "ko": "즉시 실행 가능한 프롬프트", "en": "Immediately executable prompt" }
+  }
+]
+
+**ai_enhanced 카테고리 형식:**
+[
+  {
+    "title": { "ko": "작업명", "en": "Task Name" },
+    "scenario": { "ko": "AI 활용 시나리오", "en": "AI Usage Scenario" },
+    "tool_recommendation": { "ko": "추천 AI 도구", "en": "Recommended AI Tool" }
+  }
+]
+
+**creative 카테고리 형식:**
+[
+  {
+    "title": { "ko": "작업명", "en": "Task Name" },
+    "human_value": { "ko": "인간 고유의 가치", "en": "Unique Human Value" }
+  }
+]
+
+**Important Guidelines:**
+1. Generate exactly 5 NEW items (different from previous results).
+2. RESPOND ONLY WITH THE JSON ARRAY. DO NOT INCLUDE MARKDOWN BACKTICKS OR TEXT.

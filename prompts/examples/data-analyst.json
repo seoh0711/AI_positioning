@@ -1,0 +1,103 @@
+{
+  "job_title": { "ko": "데이터 분석가", "en": "Data Analyst" },
+  "definition": {
+    "ko": "데이터를 수집, 처리, 분석하여 비즈니스 의사결정에 필요한 인사이트를 도출하는 전문가로, 통계와 데이터 시각화 능력을 활용하여 복잡한 데이터를 이해하기 쉬운 형태로 전달합니다.",
+    "en": "A professional who collects, processes, and analyzes data to derive business insights, using statistics and data visualization to communicate complex data in an understandable format."
+  },
+  "positioning_summary": {
+    "ko": "AI 분석 도구를 활용한 고급 인사이트 도출 능력과 비즈니스 맥락 해석력이 핵심 경쟁력입니다.",
+    "en": "Advanced insight generation leveraging AI analytics tools combined with business context interpretation is the core competitive advantage."
+  },
+  "career_advice": [
+    {
+      "ko": "Python, SQL 고급 활용법과 AI 분석 도구를 업무에 통합하세요",
+      "en": "Integrate advanced Python, SQL skills and AI analytics tools into your daily work"
+    },
+    {
+      "ko": "머신러닝 기초를 이해하고 AutoML 플랫폼을 활용하세요",
+      "en": "Understand ML fundamentals and leverage AutoML platforms"
+    },
+    {
+      "ko": "비즈니스 도메인 전문성으로 데이터 스토리텔링 역량을 강화하세요",
+      "en": "Strengthen data storytelling capabilities through business domain expertise"
+    }
+  ],
+  "categories": {
+    "automation": [
+      {
+        "title": { "ko": "데이터 수집 및 정제", "en": "Data Collection and Cleaning" },
+        "reason": { "ko": "반복적인 규칙 기반 작업으로 스크립트 자동화 가능", "en": "Repetitive rule-based tasks automatable via scripts" },
+        "automation_prompt": { "ko": "다음 데이터 소스에서 데이터를 수집하고 결측값, 중복값을 자동으로 처리하는 Python 스크립트를 작성해줘", "en": "Write a Python script to automatically collect data from the following sources and handle missing values and duplicates" }
+      },
+      {
+        "title": { "ko": "기초 통계 보고서 작성", "en": "Basic Statistical Report Generation" },
+        "reason": { "ko": "정형화된 보고서 형식으로 자동 생성 가능", "en": "Can be automatically generated in standardized report format" },
+        "automation_prompt": { "ko": "다음 데이터셋의 기초 통계(평균, 중앙값, 표준편차, 분포)를 분석하고 보고서를 작성해줘", "en": "Analyze basic statistics (mean, median, std dev, distribution) of the following dataset and generate a report" }
+      },
+      {
+        "title": { "ko": "정기 대시보드 업데이트", "en": "Regular Dashboard Updates" },
+        "reason": { "ko": "주기적 데이터 갱신은 완전 자동화 가능", "en": "Periodic data refresh is fully automatable" },
+        "automation_prompt": { "ko": "Tableau/Power BI 대시보드를 매일 자동으로 업데이트하는 파이프라인을 구성해줘", "en": "Set up a pipeline to automatically update Tableau/Power BI dashboards daily" }
+      },
+      {
+        "title": { "ko": "데이터 품질 검증", "en": "Data Quality Validation" },
+        "reason": { "ko": "규칙 기반 품질 체크는 자동화에 적합", "en": "Rule-based quality checks are well-suited for automation" },
+        "automation_prompt": { "ko": "다음 데이터셋의 품질을 검증하고 이상값, 형식 오류, 범위 초과를 자동으로 감지하는 코드를 작성해줘", "en": "Write code to validate data quality and automatically detect outliers, format errors, and out-of-range values" }
+      },
+      {
+        "title": { "ko": "A/B 테스트 결과 계산", "en": "A/B Test Results Calculation" },
+        "reason": { "ko": "통계적 유의성 계산은 공식화 가능", "en": "Statistical significance calculations can be formulaized" },
+        "automation_prompt": { "ko": "다음 A/B 테스트 데이터의 통계적 유의성을 검정하고 결과를 해석해줘: [데이터]", "en": "Test the statistical significance of the following A/B test data and interpret the results: [data]" }
+      }
+    ],
+    "ai_enhanced": [
+      {
+        "title": { "ko": "패턴 분석 및 이상 탐지", "en": "Pattern Analysis and Anomaly Detection" },
+        "scenario": { "ko": "AI가 복잡한 패턴을 빠르게 식별 → 분석가가 비즈니스 의미 해석", "en": "AI quickly identifies complex patterns → analyst interprets business meaning" },
+        "tool_recommendation": { "ko": "ChatGPT Advanced Data Analysis", "en": "ChatGPT Advanced Data Analysis" }
+      },
+      {
+        "title": { "ko": "예측 모델링", "en": "Predictive Modeling" },
+        "scenario": { "ko": "AutoML로 모델 후보 생성 → 분석가가 비즈니스 적합성 평가", "en": "AutoML generates model candidates → analyst evaluates business fit" },
+        "tool_recommendation": { "ko": "DataRobot, H2O.ai", "en": "DataRobot, H2O.ai" }
+      },
+      {
+        "title": { "ko": "자연어 데이터 분석", "en": "Natural Language Data Analysis" },
+        "scenario": { "ko": "LLM으로 텍스트 감성/주제 분석 → 분석가가 인사이트 도출", "en": "LLM analyzes text sentiment/topics → analyst derives insights" },
+        "tool_recommendation": { "ko": "Claude, Gemini", "en": "Claude, Gemini" }
+      },
+      {
+        "title": { "ko": "데이터 시각화 생성", "en": "Data Visualization Creation" },
+        "scenario": { "ko": "AI가 차트 유형 추천 및 코드 생성 → 분석가가 커스터마이징", "en": "AI recommends chart types and generates code → analyst customizes" },
+        "tool_recommendation": { "ko": "Tableau AI, Power BI Copilot", "en": "Tableau AI, Power BI Copilot" }
+      },
+      {
+        "title": { "ko": "SQL 쿼리 최적화", "en": "SQL Query Optimization" },
+        "scenario": { "ko": "AI가 쿼리 개선안 제안 → 분석가가 비즈니스 로직 정확성 검증", "en": "AI suggests query improvements → analyst validates business logic accuracy" },
+        "tool_recommendation": { "ko": "GitHub Copilot, ChatGPT", "en": "GitHub Copilot, ChatGPT" }
+      }
+    ],
+    "creative": [
+      {
+        "title": { "ko": "비즈니스 문제 정의", "en": "Business Problem Definition" },
+        "human_value": { "ko": "조직의 전략적 맥락과 이해관계자 니즈를 이해하는 인간 고유 능력", "en": "Uniquely human ability to understand organizational strategic context and stakeholder needs" }
+      },
+      {
+        "title": { "ko": "인사이트 해석 및 의사결정 지원", "en": "Insight Interpretation and Decision Support" },
+        "human_value": { "ko": "데이터 너머의 비즈니스 맥락을 읽고 실행 가능한 제언을 도출하는 판단력", "en": "Judgment to read business context beyond data and derive actionable recommendations" }
+      },
+      {
+        "title": { "ko": "데이터 기반 전략 제안", "en": "Data-Driven Strategy Proposal" },
+        "human_value": { "ko": "분석 결과를 조직의 장기 목표와 연결하는 전략적 사고", "en": "Strategic thinking that connects analytical results to organizational long-term goals" }
+      },
+      {
+        "title": { "ko": "이해관계자 커뮤니케이션", "en": "Stakeholder Communication" },
+        "human_value": { "ko": "복잡한 데이터를 비기술 임원진이 이해하도록 설득력 있게 전달하는 능력", "en": "Ability to persuasively communicate complex data to non-technical executives" }
+      },
+      {
+        "title": { "ko": "윤리적 데이터 활용 판단", "en": "Ethical Data Use Judgment" },
+        "human_value": { "ko": "개인정보 보호, 편향 방지, 공정성을 균형 있게 고려하는 윤리적 판단", "en": "Ethical judgment that balances privacy protection, bias prevention, and fairness" }
+      }
+    ]
+  }
+}

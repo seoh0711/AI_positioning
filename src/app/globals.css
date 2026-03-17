@@ -1,0 +1,103 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #0a0a0a;
+  --surface-1: #111111;
+  --surface-2: #161616;
+  --surface-3: #1e1e1e;
+  --border: #242424;
+  --border-hover: #333333;
+  --text-primary: #f0f0f0;
+  --text-secondary: #7a7a7a;
+  --text-muted: #3a3a3a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  color: var(--text-primary);
+  background: var(--bg);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
+  letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@layer base {
+  body {
+    @apply antialiased;
+  }
+}
+
+/* ── Matte Card ─────────────────────────────── */
+.matte-card {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.matte-card:hover {
+  border-color: var(--border-hover);
+  background: var(--surface-2);
+}
+
+.matte-card-2 {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.matte-card-2:hover {
+  border-color: var(--border-hover);
+  background: var(--surface-3);
+}
+
+/* ── Category accent lines ───────────────────── */
+.accent-auto   { border-color: #2a3a4a; }
+.accent-ai     { border-color: #2d2a3e; }
+.accent-create { border-color: #3a2a2a; }
+
+.accent-auto-text   { color: #6a9fc0; }
+.accent-ai-text     { color: #9a8ac0; }
+.accent-create-text { color: #c08a8a; }
+
+.accent-auto-bg   { background: rgba(100, 160, 200, 0.06); }
+.accent-ai-bg     { background: rgba(150, 130, 200, 0.06); }
+.accent-create-bg { background: rgba(200, 130, 130, 0.06); }
+
+/* ── Scrollbar ───────────────────────────────── */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 3px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 2px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--border-hover);
+}
+
+/* ── Animations ──────────────────────────────── */
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.5s ease forwards;
+}
+
+@keyframes spin-slow {
+  to { transform: rotate(360deg); }
+}
+.animate-spin-slow {
+  animation: spin-slow 3s linear infinite;
+}
