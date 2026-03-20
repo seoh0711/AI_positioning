@@ -10,6 +10,8 @@ import {
   ExternalLink, LogIn, LogOut, User, ArrowRight
 } from "lucide-react";
 import { translations, Language } from "@/lib/translations";
+import EbookViewer from "@/components/EbookViewer";
+import type { EbookContent } from "@/types/ebook";
 
 interface DualText { ko: string; en: string; }
 
@@ -22,6 +24,7 @@ interface AIEnhancedTask {
   title: DualText;
   scenario: DualText;
   tool_recommendation: DualText;
+  workflow_steps?: DualText[];
 }
 interface CreativeTask {
   title: DualText;
@@ -135,6 +138,9 @@ export default function Home() {
   const [loadingStep, setLoadingStep] = useState(0);
   const [refreshingCategories, setRefreshingCategories] = useState<Record<string, boolean>>({});
   const [jobTheme, setJobTheme] = useState<string>("default");
+  const [ebookOpen, setEbookOpen] = useState(false);
+  const [ebookLoading, setEbookLoading] = useState(false);
+  const [ebookContent, setEbookContent] = useState<EbookContent | null>(null);
 
   // Custom cursor
   const cursorX = useMotionValue(-200);
@@ -238,6 +244,39 @@ export default function Home() {
     } finally {
       setRefreshingCategories(prev => ({ ...prev, [category]: false }));
     }
+  };
+
+  const handleGenerateEbook = async () => {
+    if (!result) return;
+    setEbookLoading(true);
+    setEbookOpen(true);
+    // Mock delay simulating API call
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    const jobTitle = result.job_title[lang];
+    setEbookContent({
+      title: { ko: `${jobTitle}의 인간 고유 역량 가이드`, en: `Human Competency Guide for ${jobTitle}` },
+      subtitle: { ko: "AI 시대에 대체 불가능한 핵심 역량 개발", en: "Developing Irreplaceable Core Competencies in the AI Era" },
+      chapters: [
+        {
+          title: { ko: "제1장: 창의적 문제 해결", en: "Chapter 1: Creative Problem Solving" },
+          content: { ko: "창의적 문제 해결은 AI가 모방할 수 없는 인간 고유의 능력입니다. 복잡한 상황에서 새로운 관점을 찾고, 기존의 틀을 벗어난 해결책을 제시하는 능력은 앞으로도 인간만이 할 수 있는 영역으로 남을 것입니다.\n\n이 장에서는 창의적 사고를 체계적으로 개발하는 방법과, 실무에서 적용할 수 있는 구체적인 기법들을 소개합니다.", en: "Creative problem solving is a uniquely human ability that AI cannot replicate. The capacity to find new perspectives in complex situations and propose solutions that break conventional frameworks will remain exclusively human.\n\nThis chapter introduces systematic methods to develop creative thinking and practical techniques applicable in the workplace." },
+          page_range: "1-15"
+        },
+        {
+          title: { ko: "제2장: 감성 지능과 공감 능력", en: "Chapter 2: Emotional Intelligence & Empathy" },
+          content: { ko: "감성 지능(EQ)은 자신과 타인의 감정을 인식하고, 이를 효과적으로 관리하며 관계를 형성하는 능력입니다. AI는 데이터를 분석하여 감정 패턴을 인식할 수 있지만, 진정한 공감과 인간적 유대감을 형성하는 것은 여전히 인간만의 영역입니다.\n\n직장에서의 감성 지능은 팀워크, 리더십, 고객 관계 등 모든 분야에서 성과를 결정짓는 핵심 요소입니다.", en: "Emotional intelligence (EQ) is the ability to recognize, manage, and leverage emotions in oneself and others to build relationships. While AI can analyze data to recognize emotional patterns, forming genuine empathy and human bonds remains exclusively human.\n\nEmotional intelligence in the workplace is a key determinant of performance across teamwork, leadership, and client relationships." },
+          page_range: "16-30"
+        },
+        {
+          title: { ko: "제3장: 윤리적 판단과 가치 기반 의사결정", en: "Chapter 3: Ethical Judgment & Value-Based Decision Making" },
+          content: { ko: "복잡한 윤리적 상황에서의 판단은 단순히 규칙을 따르는 것이 아니라, 다양한 가치와 이해관계를 고려한 종합적인 사고를 요구합니다. AI는 윤리 가이드라인을 학습할 수 있지만, 새로운 상황에서 가치 기반의 판단을 내리는 것은 여전히 인간의 영역입니다.\n\n이 장에서는 윤리적 리더십을 개발하고 조직 내에서 가치 기반 문화를 구축하는 방법을 탐구합니다.", en: "Judgment in complex ethical situations requires not just rule-following but holistic thinking that considers diverse values and interests. While AI can learn ethical guidelines, making value-based judgments in novel situations remains a human domain.\n\nThis chapter explores developing ethical leadership and building a values-based culture within organizations." },
+          page_range: "31-45"
+        }
+      ],
+      total_pages: 45,
+      preview_note: { ko: "이것은 10~15페이지 샘플입니다. 전체 150페이지 버전을 통해 더 깊은 통찰을 얻으세요.", en: "This is a 10-15 page sample. Get deeper insights through the full 150-page version." }
+    });
+    setEbookLoading(false);
   };
 
   return (
@@ -546,6 +585,21 @@ export default function Home() {
                         {item?.tool_recommendation?.[lang] || ""}
                       </span>
                     </div>
+                    {item.workflow_steps && item.workflow_steps.length > 0 && (
+                      <div style={{ marginTop: "12px" }}>
+                        <p style={{ fontSize: "11px", color: "rgba(240,240,240,0.4)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "8px" }}>
+                          {lang === 'ko' ? '워크플로' : 'Workflow'}
+                        </p>
+                        <ol style={{ paddingLeft: "0", margin: 0, listStyle: "none" }}>
+                          {item.workflow_steps.map((step: DualText, stepIdx: number) => (
+                            <li key={stepIdx} style={{ display: "flex", gap: "8px", marginBottom: "6px", fontSize: "12px", color: "rgba(240,240,240,0.7)" }}>
+                              <span style={{ color: "rgba(99,102,241,0.8)", fontWeight: 700, minWidth: "18px" }}>{stepIdx + 1}.</span>
+                              <span>{step[lang]}</span>
+                            </li>
+                          ))}
+                        </ol>
+                      </div>
+                    )}
                   </div>
                 )}
                 delay={0.05}
@@ -577,6 +631,35 @@ export default function Home() {
                 delay={0.1}
               />
             </div>
+
+            {/* Ebook Generate Button */}
+            {result && (
+              <div style={{ padding: "16px", borderTop: "1px solid #242424", marginTop: "8px" }}>
+                <button
+                  onClick={handleGenerateEbook}
+                  disabled={ebookLoading}
+                  style={{
+                    width: "100%",
+                    padding: "12px 20px",
+                    background: ebookLoading ? "#1e1e1e" : "linear-gradient(135deg, rgba(168,85,247,0.2) 0%, rgba(217,70,239,0.2) 100%)",
+                    border: "1px solid rgba(168,85,247,0.4)",
+                    borderRadius: "8px",
+                    color: "#f0f0f0",
+                    fontSize: "14px",
+                    fontWeight: 600,
+                    cursor: ebookLoading ? "not-allowed" : "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "8px",
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  <Sparkles size={16} style={{ color: "rgba(168,85,247,0.8)" }} />
+                  {lang === 'ko' ? '전자책 샘플 생성' : 'Generate E-Book Sample'}
+                </button>
+              </div>
+            )}
 
             {/* Philosophical Section */}
             <motion.section
@@ -698,6 +781,14 @@ export default function Home() {
       <AnimatePresence>
         {loading && <LoadingOverlay message={loadingMessages[loadingStep]} />}
       </AnimatePresence>
+
+      <EbookViewer
+        content={ebookContent}
+        isOpen={ebookOpen}
+        isLoading={ebookLoading}
+        onClose={() => { setEbookOpen(false); setEbookLoading(false); }}
+        lang={lang}
+      />
     </main>
   );
 }
