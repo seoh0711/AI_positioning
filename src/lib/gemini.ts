@@ -3,6 +3,31 @@ import { GoogleGenAI } from "@google/genai";
 const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || "";
 const client = new GoogleGenAI({ apiKey });
 
+async function callGemini(prompt: string): Promise<string> {
+  const interaction = await client.interactions.create({
+    model: "gemini-3-flash-preview",
+    input: prompt,
+  });
+  if (interaction.outputs && interaction.outputs.length > 0) {
+    const lastOutput = interaction.outputs[interaction.outputs.length - 1];
+    if (lastOutput.type === "text" && lastOutput.text) {
+      return lastOutput.text.trim().replace(/^```json\s*/i, "").replace(/\s*```$/i, "");
+    }
+  }
+  throw new Error("No text output from Gemini");
+}
+
+function safeParseJson(text: string): unknown {
+  try {
+    return JSON.parse(text);
+  } catch {
+    const cleaned = text
+      .replace(/[\u0000-\u001F\u007F-\u009F]/g, "")
+      .replace(/,\s*([}\]])/g, "$1");
+    return JSON.parse(cleaned);
+  }
+}
+
 export async function getPositioning(job: string) {
   const prompt = `
     당신은 세계적인 직무 분석가이자 AI 전략 컨설턴트입니다.
@@ -101,6 +126,70 @@ export async function getPositioning(job: string) {
     console.error("Gemini API Error:", error);
     throw error;
   }
+}
+
+export async function generateEbookContent(
+  job: string,
+  item: { title: { ko: string; en: string }; human_value: { ko: string; en: string } }
+) {
+  const prompt = `당신은 전문 커리어 개발 작가입니다.
+직무: "${job}"
+핵심 역량: "${item.title.ko}" / "${item.title.en}"
+인간적 가치: "${item.human_value.ko}"
+
+위 역량을 주제로 전자책 샘플(3챕터)을 작성하세요.
+각 챕터 content는 \\n\\n으로 구분된 3개 단락, 각 단락 100자 이상이어야 합니다.
+
+다음 JSON 형식으로만 응답하세요:
+{
+  "title": { "ko": "${item.title.ko}: 인간 고유 역량 가이드", "en": "${item.title.en}: Human Competency Guide" },
+  "subtitle": { "ko": "${job}의 대체 불가능한 핵심 역량", "en": "Irreplaceable Core Competency for ${job}" },
+  "chapters": [
+    { "title": { "ko": "제1장 제목", "en": "Chapter 1 Title" }, "content": { "ko": "단락1\\n\\n단락2\\n\\n단락3", "en": "Para1\\n\\nPara2\\n\\nPara3" }, "page_range": "1-15" },
+    { "title": { "ko": "제2장 제목", "en": "Chapter 2 Title" }, "content": { "ko": "...", "en": "..." }, "page_range": "16-30" },
+    { "title": { "ko": "제3장 제목", "en": "Chapter 3 Title" }, "content": { "ko": "...", "en": "..." }, "page_range": "31-45" }
+  ],
+  "total_pages": 45,
+  "preview_note": { "ko": "이것은 샘플 미리보기입니다. 전체 버전에서 더 깊은 통찰을 얻으세요.", "en": "This is a sample preview. Get deeper insights from the full version." }
+}
+RESPOND ONLY WITH THE JSON OBJECT. NO MARKDOWN. NO EXTRA TEXT.`;
+
+  const text = await callGemini(prompt);
+  const first = text.indexOf("{");
+  const last = text.lastIndexOf("}");
+  if (first === -1 || last === -1) throw new Error("Invalid ebook JSON");
+  return safeParseJson(text.substring(first, last + 1));
+}
+
+export async function generateWorkflowSteps(
+  job: string,
+  item: { title: { ko: string; en: string }; scenario: { ko: string; en: string }; tool_recommendation: { ko: string; en: string } }
+) {
+  const prompt = `당신은 AI 협업 워크플로 전문가입니다.
+직무: "${job}"
+작업: "${item.title.ko}" / "${item.title.en}"
+시나리오: "${item.scenario.ko}"
+추천 도구: "${item.tool_recommendation.ko}"
+
+이 작업에서 LLM/AI 에이전트와 협업하는 6단계 실행 워크플로를 생성하세요.
+각 단계는 구체적이고 즉시 실행 가능해야 합니다. 번호 없이 설명만 포함하세요.
+
+다음 JSON 배열 형식으로만 응답하세요:
+[
+  { "ko": "단계 설명", "en": "Step description" },
+  { "ko": "...", "en": "..." },
+  { "ko": "...", "en": "..." },
+  { "ko": "...", "en": "..." },
+  { "ko": "...", "en": "..." },
+  { "ko": "...", "en": "..." }
+]
+RESPOND ONLY WITH THE JSON ARRAY. NO MARKDOWN. NO EXTRA TEXT.`;
+
+  const text = await callGemini(prompt);
+  const first = text.indexOf("[");
+  const last = text.lastIndexOf("]");
+  if (first === -1 || last === -1) throw new Error("Invalid workflow JSON");
+  return safeParseJson(text.substring(first, last + 1));
 }
 
 export async function getPartialPositioning(job: string, category: 'automation' | 'ai_enhanced' | 'creative') {

@@ -7,13 +7,19 @@ import {
   Zap, Cpu, Palette, Loader2, Briefcase,
   Target, Lightbulb, TrendingUp, ChevronRight,
   Copy, Check, Languages, Sparkles, Search, BrainCircuit, Rocket, RotateCcw,
-  ExternalLink, LogIn, LogOut, User, ArrowRight
+  ExternalLink, LogIn, LogOut, User, ArrowRight, BookOpen, Library
 } from "lucide-react";
 import { translations, Language } from "@/lib/translations";
 import EbookViewer from "@/components/EbookViewer";
 import type { EbookContent } from "@/types/ebook";
 
 interface DualText { ko: string; en: string; }
+
+interface HistoryItem {
+  job: string;
+  result: PositioningResult;
+  timestamp: number;
+}
 
 interface AutomationTask {
   title: DualText;
@@ -141,6 +147,42 @@ export default function Home() {
   const [ebookOpen, setEbookOpen] = useState(false);
   const [ebookLoading, setEbookLoading] = useState(false);
   const [ebookContent, setEbookContent] = useState<EbookContent | null>(null);
+  const [ebookItemIndex, setEbookItemIndex] = useState<number | null>(null);
+  const [generatedEbooks, setGeneratedEbooks] = useState<Record<number, EbookContent>>({});
+  const [generatedWorkflows, setGeneratedWorkflows] = useState<Record<number, DualText[]>>({});
+  const [generatingWorkflow, setGeneratingWorkflow] = useState<number | null>(null);
+  const [expandedWorkflows, setExpandedWorkflows] = useState<Record<number, boolean>>({});
+  const [analysisHistory, setAnalysisHistory] = useState<HistoryItem[]>([]);
+
+  // Load history from localStorage on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("ai_positioning_history");
+      if (saved) setAnalysisHistory(JSON.parse(saved));
+    } catch {}
+  }, []);
+
+  // Save result to history when analysis completes
+  useEffect(() => {
+    if (!result) return;
+    const jobKey = result.job_title.ko || result.job_title.en;
+    const newItem: HistoryItem = { job: jobKey, result, timestamp: Date.now() };
+    setAnalysisHistory(prev => {
+      const filtered = prev.filter(h => h.job !== jobKey);
+      const next = [newItem, ...filtered].slice(0, 5);
+      try { localStorage.setItem("ai_positioning_history", JSON.stringify(next)); } catch {}
+      return next;
+    });
+  }, [result]);
+
+  // Reset workflow/ebook state on new analysis
+  useEffect(() => {
+    if (result) {
+      setGeneratedWorkflows({});
+      setExpandedWorkflows({});
+      setGeneratedEbooks({});
+    }
+  }, [result]);
 
   // Custom cursor
   const cursorX = useMotionValue(-200);
@@ -246,37 +288,58 @@ export default function Home() {
     }
   };
 
-  const handleGenerateEbook = async () => {
-    if (!result) return;
+  const handleGenerateEbook = async (item: CreativeTask, idx: number) => {
+    if (!result || ebookLoading) return;
+    // Already generated — just reopen
+    if (generatedEbooks[idx]) {
+      setEbookContent(generatedEbooks[idx]);
+      setEbookItemIndex(idx);
+      setEbookOpen(true);
+      return;
+    }
+    setEbookItemIndex(idx);
     setEbookLoading(true);
     setEbookOpen(true);
-    // Mock delay simulating API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    const jobTitle = result.job_title[lang];
-    setEbookContent({
-      title: { ko: `${jobTitle}의 인간 고유 역량 가이드`, en: `Human Competency Guide for ${jobTitle}` },
-      subtitle: { ko: "AI 시대에 대체 불가능한 핵심 역량 개발", en: "Developing Irreplaceable Core Competencies in the AI Era" },
-      chapters: [
-        {
-          title: { ko: "제1장: 창의적 문제 해결", en: "Chapter 1: Creative Problem Solving" },
-          content: { ko: "창의적 문제 해결은 AI가 모방할 수 없는 인간 고유의 능력입니다. 복잡한 상황에서 새로운 관점을 찾고, 기존의 틀을 벗어난 해결책을 제시하는 능력은 앞으로도 인간만이 할 수 있는 영역으로 남을 것입니다.\n\n이 장에서는 창의적 사고를 체계적으로 개발하는 방법과, 실무에서 적용할 수 있는 구체적인 기법들을 소개합니다.", en: "Creative problem solving is a uniquely human ability that AI cannot replicate. The capacity to find new perspectives in complex situations and propose solutions that break conventional frameworks will remain exclusively human.\n\nThis chapter introduces systematic methods to develop creative thinking and practical techniques applicable in the workplace." },
-          page_range: "1-15"
-        },
-        {
-          title: { ko: "제2장: 감성 지능과 공감 능력", en: "Chapter 2: Emotional Intelligence & Empathy" },
-          content: { ko: "감성 지능(EQ)은 자신과 타인의 감정을 인식하고, 이를 효과적으로 관리하며 관계를 형성하는 능력입니다. AI는 데이터를 분석하여 감정 패턴을 인식할 수 있지만, 진정한 공감과 인간적 유대감을 형성하는 것은 여전히 인간만의 영역입니다.\n\n직장에서의 감성 지능은 팀워크, 리더십, 고객 관계 등 모든 분야에서 성과를 결정짓는 핵심 요소입니다.", en: "Emotional intelligence (EQ) is the ability to recognize, manage, and leverage emotions in oneself and others to build relationships. While AI can analyze data to recognize emotional patterns, forming genuine empathy and human bonds remains exclusively human.\n\nEmotional intelligence in the workplace is a key determinant of performance across teamwork, leadership, and client relationships." },
-          page_range: "16-30"
-        },
-        {
-          title: { ko: "제3장: 윤리적 판단과 가치 기반 의사결정", en: "Chapter 3: Ethical Judgment & Value-Based Decision Making" },
-          content: { ko: "복잡한 윤리적 상황에서의 판단은 단순히 규칙을 따르는 것이 아니라, 다양한 가치와 이해관계를 고려한 종합적인 사고를 요구합니다. AI는 윤리 가이드라인을 학습할 수 있지만, 새로운 상황에서 가치 기반의 판단을 내리는 것은 여전히 인간의 영역입니다.\n\n이 장에서는 윤리적 리더십을 개발하고 조직 내에서 가치 기반 문화를 구축하는 방법을 탐구합니다.", en: "Judgment in complex ethical situations requires not just rule-following but holistic thinking that considers diverse values and interests. While AI can learn ethical guidelines, making value-based judgments in novel situations remains a human domain.\n\nThis chapter explores developing ethical leadership and building a values-based culture within organizations." },
-          page_range: "31-45"
-        }
-      ],
-      total_pages: 45,
-      preview_note: { ko: "이것은 10~15페이지 샘플입니다. 전체 150페이지 버전을 통해 더 깊은 통찰을 얻으세요.", en: "This is a 10-15 page sample. Get deeper insights through the full 150-page version." }
-    });
-    setEbookLoading(false);
+    try {
+      const res = await fetch("/api/ebook", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ job: result.job_title.ko || result.job_title.en, item }),
+      });
+      if (!res.ok) throw new Error("Ebook generation failed");
+      const content: EbookContent = await res.json();
+      setEbookContent(content);
+      setGeneratedEbooks(prev => ({ ...prev, [idx]: content }));
+    } catch (error) {
+      console.error("Ebook Error:", error);
+      setEbookOpen(false);
+    } finally {
+      setEbookLoading(false);
+    }
+  };
+
+  const handleGenerateWorkflow = async (item: AIEnhancedTask, idx: number) => {
+    if (generatedWorkflows[idx]) {
+      setExpandedWorkflows(prev => ({ ...prev, [idx]: !prev[idx] }));
+      return;
+    }
+    if (!result) return;
+    setGeneratingWorkflow(idx);
+    try {
+      const res = await fetch("/api/workflow", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ job: result.job_title.ko || result.job_title.en, item }),
+      });
+      if (!res.ok) throw new Error("Workflow generation failed");
+      const steps = await res.json();
+      setGeneratedWorkflows(prev => ({ ...prev, [idx]: steps }));
+      setExpandedWorkflows(prev => ({ ...prev, [idx]: true }));
+    } catch (error) {
+      console.error("Workflow Error:", error);
+    } finally {
+      setGeneratingWorkflow(null);
+    }
   };
 
   return (
@@ -369,6 +432,27 @@ export default function Home() {
 
         {/* ── Input ───────────────────────────────────── */}
         <section className="max-w-3xl mx-auto">
+          {/* Analysis History */}
+          {analysisHistory.length > 0 && (
+            <div className="mb-4 flex flex-wrap gap-2 items-center">
+              <span className="text-[10px] font-black tracking-[0.2em] uppercase" style={{ color: "#333" }}>
+                {lang === "ko" ? "최근 분석" : "Recent"}
+              </span>
+              {analysisHistory.map((h, i) => (
+                <button
+                  key={i}
+                  onClick={() => { setResult(h.result); setJob(h.job); }}
+                  className="px-3 py-1 rounded-lg text-xs font-semibold transition-all"
+                  style={{ background: "#111", border: "1px solid #242424", color: "#666" }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = "#444"; (e.currentTarget as HTMLButtonElement).style.color = "#aaa"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = "#242424"; (e.currentTarget as HTMLButtonElement).style.color = "#666"; }}
+                >
+                  {h.job}
+                </button>
+              ))}
+            </div>
+          )}
+
           {!session ? (
             <div
               className="text-center py-24 px-10 rounded-2xl space-y-6"
@@ -588,13 +672,88 @@ export default function Home() {
                     {item.workflow_steps && item.workflow_steps.length > 0 && (
                       <div style={{ marginTop: "12px" }}>
                         <p style={{ fontSize: "11px", color: "rgba(240,240,240,0.4)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "8px" }}>
-                          {lang === 'ko' ? '워크플로' : 'Workflow'}
+                          {lang === "ko" ? "워크플로" : "Workflow"}
                         </p>
                         <ol style={{ paddingLeft: "0", margin: 0, listStyle: "none" }}>
                           {item.workflow_steps.map((step: DualText, stepIdx: number) => (
                             <li key={stepIdx} style={{ display: "flex", gap: "8px", marginBottom: "6px", fontSize: "12px", color: "rgba(240,240,240,0.7)" }}>
                               <span style={{ color: "rgba(99,102,241,0.8)", fontWeight: 700, minWidth: "18px" }}>{stepIdx + 1}.</span>
                               <span>{step[lang]}</span>
+                            </li>
+                          ))}
+                        </ol>
+                      </div>
+                    )}
+                    {/* LLM 협업 워크플로 버튼 */}
+                    <button
+                      onClick={() => handleGenerateWorkflow(item, idx)}
+                      disabled={generatingWorkflow === idx}
+                      style={{
+                        width: "100%",
+                        padding: "8px 12px",
+                        background: expandedWorkflows[idx]
+                          ? "rgba(99,102,241,0.12)"
+                          : generatingWorkflow === idx
+                          ? "#1e1e1e"
+                          : "linear-gradient(135deg, rgba(99,102,241,0.12) 0%, rgba(139,92,246,0.12) 100%)",
+                        border: `1px solid ${expandedWorkflows[idx] ? "rgba(99,102,241,0.5)" : "rgba(99,102,241,0.25)"}`,
+                        borderRadius: "6px",
+                        color: "#9a9aee",
+                        fontSize: "12px",
+                        fontWeight: 600,
+                        cursor: generatingWorkflow === idx ? "not-allowed" : "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "6px",
+                        transition: "all 0.2s ease",
+                      }}
+                    >
+                      {generatingWorkflow === idx ? (
+                        <Loader2 size={13} className="animate-spin" />
+                      ) : (
+                        <BrainCircuit size={13} />
+                      )}
+                      {generatingWorkflow === idx
+                        ? (lang === "ko" ? "생성 중..." : "Generating...")
+                        : expandedWorkflows[idx]
+                        ? (lang === "ko" ? "LLM 협업 워크플로 접기" : "Collapse LLM Workflow")
+                        : (lang === "ko" ? "LLM 협업 워크플로 생성" : "Generate LLM Workflow")}
+                    </button>
+                    {/* 생성된 워크플로 표시 */}
+                    {expandedWorkflows[idx] && generatedWorkflows[idx] && (
+                      <div
+                        style={{
+                          padding: "12px",
+                          borderRadius: "8px",
+                          background: "rgba(99,102,241,0.06)",
+                          border: "1px solid rgba(99,102,241,0.2)",
+                        }}
+                      >
+                        <p style={{ fontSize: "10px", color: "rgba(99,102,241,0.7)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "10px", fontWeight: 700 }}>
+                          {lang === "ko" ? "LLM 에이전트 협업 워크플로" : "LLM Agent Collaboration Workflow"}
+                        </p>
+                        <ol style={{ paddingLeft: 0, margin: 0, listStyle: "none" }}>
+                          {generatedWorkflows[idx].map((step, stepIdx) => (
+                            <li key={stepIdx} style={{ display: "flex", gap: "10px", marginBottom: "8px", fontSize: "12px", color: "rgba(240,240,240,0.75)", alignItems: "flex-start" }}>
+                              <span style={{
+                                minWidth: "20px",
+                                height: "20px",
+                                borderRadius: "50%",
+                                background: "rgba(99,102,241,0.25)",
+                                border: "1px solid rgba(99,102,241,0.4)",
+                                color: "rgba(99,102,241,0.9)",
+                                fontWeight: 700,
+                                fontSize: "10px",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                flexShrink: 0,
+                                marginTop: "1px",
+                              }}>
+                                {stepIdx + 1}
+                              </span>
+                              <span style={{ lineHeight: "1.5" }}>{step[lang]}</span>
                             </li>
                           ))}
                         </ol>
@@ -626,39 +785,100 @@ export default function Home() {
                         {item?.human_value?.[lang] || ""}
                       </p>
                     </div>
+                    <button
+                      onClick={() => handleGenerateEbook(item, idx)}
+                      disabled={ebookLoading}
+                      style={{
+                        width: "100%",
+                        padding: "8px 12px",
+                        background: ebookLoading
+                          ? "#1e1e1e"
+                          : "linear-gradient(135deg, rgba(168,85,247,0.15) 0%, rgba(217,70,239,0.15) 100%)",
+                        border: "1px solid rgba(168,85,247,0.3)",
+                        borderRadius: "6px",
+                        color: "#c0a0e0",
+                        fontSize: "12px",
+                        fontWeight: 600,
+                        cursor: ebookLoading ? "not-allowed" : "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "6px",
+                        transition: "all 0.2s ease",
+                      }}
+                    >
+                      {ebookLoading && ebookItemIndex === idx
+                        ? <Loader2 size={13} className="animate-spin" />
+                        : generatedEbooks[idx]
+                        ? <BookOpen size={13} style={{ color: "rgba(168,85,247,0.8)" }} />
+                        : <Sparkles size={13} style={{ color: "rgba(168,85,247,0.8)" }} />}
+                      {ebookLoading && ebookItemIndex === idx
+                        ? (lang === "ko" ? "생성 중..." : "Generating...")
+                        : generatedEbooks[idx]
+                        ? (lang === "ko" ? "다시보기" : "Open Again")
+                        : (lang === "ko" ? "전자책 생성" : "Generate E-Book")}
+                    </button>
                   </div>
                 )}
                 delay={0.1}
               />
             </div>
 
-            {/* Ebook Generate Button */}
-            {result && (
-              <div style={{ padding: "16px", borderTop: "1px solid #242424", marginTop: "8px" }}>
-                <button
-                  onClick={handleGenerateEbook}
-                  disabled={ebookLoading}
-                  style={{
-                    width: "100%",
-                    padding: "12px 20px",
-                    background: ebookLoading ? "#1e1e1e" : "linear-gradient(135deg, rgba(168,85,247,0.2) 0%, rgba(217,70,239,0.2) 100%)",
-                    border: "1px solid rgba(168,85,247,0.4)",
-                    borderRadius: "8px",
-                    color: "#f0f0f0",
-                    fontSize: "14px",
-                    fontWeight: 600,
-                    cursor: ebookLoading ? "not-allowed" : "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "8px",
-                    transition: "all 0.2s ease",
-                  }}
-                >
-                  <Sparkles size={16} style={{ color: "rgba(168,85,247,0.8)" }} />
-                  {lang === 'ko' ? '전자책 샘플 생성' : 'Generate E-Book Sample'}
-                </button>
-              </div>
+            {/* Personal Bookshelf */}
+            {Object.keys(generatedEbooks).length > 0 && result && (
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+                className="rounded-2xl p-8 space-y-6"
+                style={{ background: "#111", border: "1px solid #1e1e1e" }}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "#161616", border: "1px solid #222" }}>
+                    <Library size={18} style={{ color: "#9a6aaa" }} />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black uppercase tracking-[0.15em]" style={{ color: "#888" }}>
+                      {lang === "ko" ? "개인 책장" : "My Bookshelf"}
+                    </h3>
+                    <p className="text-xs" style={{ color: "#444" }}>
+                      {lang === "ko" ? "생성된 전자책 모음 · 새로고침 전까지 보관" : "Generated ebooks · Saved until page refresh"}
+                    </p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {Object.entries(generatedEbooks).map(([idxStr, ebook]) => {
+                    const idx = Number(idxStr);
+                    const creativeItem = result.categories.creative[idx];
+                    return (
+                      <button
+                        key={idx}
+                        onClick={() => { setEbookContent(ebook); setEbookItemIndex(idx); setEbookOpen(true); }}
+                        className="text-left p-4 rounded-xl transition-all space-y-2"
+                        style={{ background: "#161616", border: "1px solid #1e1e1e" }}
+                        onMouseEnter={e => (e.currentTarget.style.borderColor = "rgba(168,85,247,0.4)")}
+                        onMouseLeave={e => (e.currentTarget.style.borderColor = "#1e1e1e")}
+                      >
+                        <div className="flex items-start gap-2">
+                          <BookOpen size={14} style={{ color: "rgba(168,85,247,0.6)", flexShrink: 0, marginTop: 2 }} />
+                          <p className="text-xs font-semibold leading-snug" style={{ color: "#d0d0d0" }}>
+                            {ebook.title[lang]}
+                          </p>
+                        </div>
+                        <p className="text-[10px] leading-relaxed" style={{ color: "#555" }}>
+                          {creativeItem?.human_value?.[lang]?.slice(0, 60)}…
+                        </p>
+                        <div className="flex items-center gap-1.5 pt-1">
+                          <span className="text-[10px] font-black tracking-widest uppercase" style={{ color: "rgba(168,85,247,0.5)" }}>
+                            {lang === "ko" ? "열기" : "Open"}
+                          </span>
+                          <ChevronRight size={10} style={{ color: "rgba(168,85,247,0.5)" }} />
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </motion.div>
             )}
 
             {/* Philosophical Section */}
