@@ -10,12 +10,7 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async signIn({ user }) {
-      // Restrict access to hanbit.co.kr domain
-      const email = user.email;
-      if (email && email.endsWith("@hanbit.co.kr")) {
-        return true;
-      }
-      return false; // Access denied
+      return !!user.email;
     },
     async session({ session, token }) {
       if (session.user) {
